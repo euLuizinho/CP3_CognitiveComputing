@@ -39,14 +39,13 @@ Os buracos não são desenhados à mão: são gerados a partir de poses capturad
 
 ## Validação
 
-Plano de validação (resultados a preencher depois dos testes):
+Plano de validação:
 
 - Cerca de 50 tentativas com pessoas diferentes.
 - Para cada tentativa, comparar o veredito do jogo ("passou" ou "caiu") com o julgamento de uma pessoa observando.
 - Métrica de precisão: taxa de concordância entre o jogo e o julgamento humano.
 - Métrica de desempenho: FPS médio durante o jogo.
 
-**Resultados:** _a preencher._
 
 ## Escopo e limitações
 
@@ -54,17 +53,9 @@ Plano de validação (resultados a preencher depois dos testes):
 - O corpo inteiro precisa aparecer na câmera, então é preciso uma distância que permita esse enquadramento.
 - Fundo muito poluído, pouca luz e roupa parecida com o fundo podem prejudicar a detecção da silhueta.
 
-**Possíveis evoluções:** modo para dois jogadores, dificuldade adaptativa, sons e gráficos mais elaborados.
 
 ## Integrantes
 
 - Luiz Fabiano Nascimento Vale da Silva — RM 553529 — [github.com/euLuizinho](https://github.com/euLuizinho)
 
-## Como executar
 
-*(A ajustar conforme o código final.)*
-
-```bash
-pip install opencv-python mediapipe numpy
-python main.py
-```
