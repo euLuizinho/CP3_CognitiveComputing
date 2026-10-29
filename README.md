@@ -16,59 +16,64 @@ O sistema utiliza a biblioteca **MediaPipe** (Google Tasks API com modelo de red
 
 ## 2. Diagrama de Fluxo e Arquitetura do Sistema
 
-O pipeline completo — desde a captura de vídeo até a renderização 3D, rede neural e validação de métricas — está estruturado conforme o diagrama a seguir:
+![Diagrama de Arquitetura do Muro Humano](assets/fluxo_arquitetura.png)
+
+<details>
+<summary><b>Clique para expandir o código Mermaid do diagrama</b></summary>
 
 ```mermaid
-flowchart TD
-    subgraph INPUT ["1. Entrada de Vídeo"]
-        Cam["Webcam HD (1280x720 16:9)"] --> Flip["Espelhamento Horizontal (Flip)"]
-        Flip --> RGB["Conversão BGR para RGB"]
+graph TD
+    subgraph S1 [1. Entrada de Video]
+        Cam[Webcam HD 1280x720 16:9] --> Flip[Espelhamento Horizontal]
+        Flip --> RGB[Conversao BGR para RGB]
     end
 
-    subgraph IA ["2. Visão Computacional & IA"]
-        RGB --> MP["MediaPipe ImageSegmenter (TFLite Float16)"]
-        MP --> Mask["Máscara Binária da Pessoa (720p uint8)"]
+    subgraph S2 [2. Visao Computacional e IA]
+        RGB --> MP[MediaPipe ImageSegmenter Float16]
+        MP --> Mask[Mascara Binaria da Pessoa 720p]
     end
 
-    subgraph ENGINE ["3. Motor de Jogo & FSM"]
-        Mask --> FSM{"Máquina de Estados Finita (FSM)"}
-        FSM -->|1. Início| ST_START["START: Apresentação e Seleção de Modo"]
-        FSM -->|2. Preparação| ST_PREP["PREPARE: Encaixe Prévio (4s) + Projeção da Silhueta"]
-        FSM -->|3. Contagem| ST_COUNT["COUNTDOWN: 2.. 1.. VAI! + Bipes Sonoros"]
-        FSM -->|4. Ação 3D| ST_WALL["WALL_APPROACHING: Parede 3D com Zoom Acelerado"]
-        FSM -->|5. Impacto| ST_RES["RESULT: Flash de Aprovação ou Colisão"]
-        FSM -->|6. Fim| ST_OVER["GAME_OVER: Caiu na Água!"]
+    subgraph S3 [3. Motor de Jogo e FSM]
+        Mask --> FSM{Maquina de Estados FSM}
+        FSM -->|1. Inicio| ST_START[START: Menu e Modos]
+        FSM -->|2. Preparacao| ST_PREP[PREPARE: Encaixe Previo 4s e Guia de Solo]
+        FSM -->|3. Contagem| ST_COUNT[COUNTDOWN: 2.. 1.. VAI!]
+        FSM -->|4. Acao 3D| ST_WALL[WALL: Parede 3D com Zoom Acelerado]
+        FSM -->|5. Impacto| ST_RES[RESULT: Aprovacao ou Colisao]
+        FSM -->|6. Fim| ST_OVER[GAME OVER: Caiu na Agua]
     end
 
-    subgraph RENDER3D ["4. Renderizador 3D Procedural (OpenCV)"]
-        ST_WALL --> Tunnel["Corredor com Linhas de Fuga e Piso Dinâmico"]
-        Tunnel --> Texture["Geração de Texturas Procedurais (Neon, Matrix, etc.)"]
-        Texture --> Extrude["Extrusão Volumétrica e Chanfro 3D do Bloco"]
-        Extrude --> Hole["Composição do Buraco Vazado com Anti-aliasing"]
-        Hole --> Neon["Contorno Neon Multicamadas (Verde / Laranja)"]
-        Neon --> Thumb["Miniatura Alvo (Thumbnail) no Canto da Tela"]
+    subgraph S4 [4. Motor Grafico 3D Procedural]
+        ST_WALL --> Tunnel[Corredor em Perspectiva com Grid]
+        Tunnel --> Texture[6 Texturas Procedurais Dinamicas]
+        Texture --> Extrude[Extrusao e Chanfro Volumetrico 3D]
+        Extrude --> Hole[Composicao do Buraco Vazado]
+        Hole --> Neon[Contorno Neon Multicamadas]
+        Neon --> Thumb[Miniatura Alvo no Canto Superior]
     end
 
-    subgraph COLLISION ["5. Lógica de Encaixe & Julgamento"]
-        ST_WALL --> Calc["Cálculo de Encaixe: 1.0 - (Pixels Fora / Total Corpo)"]
-        Calc --> Bar["Barra de Encaixe em Tempo Real no HUD"]
-        ST_RES --> Judge{"Encaixe >= 68%?"}
-        Judge -->|Sim| Pass["Vitória: +100 Pontos x Fase + Som de Sucesso"]
-        Judge -->|Não| Fail{"Modo Arcade ou Treino?"}
-        Fail -->|Arcade| SubLife["-1 Vida (3 Corações)"]
-        Fail -->|Treino| KeepGoing["Modo Treino: Sem Penalidade de Vida"]
-        SubLife --> LivesCheck{"Vidas <= 0?"}
+    subgraph S5 [5. Logica de Encaixe e Colisao]
+        ST_WALL --> Calc[Calculo de Encaixe em Tempo Real]
+        Calc --> Bar[Barra de Encaixe no HUD]
+        ST_RES --> Judge{Encaixe maior ou igual a 68%?}
+        Judge -->|Sim| Pass[Vitoria: +Pontos x Fase e Som Sucesso]
+        Judge -->|Nao| Fail{Modo Arcade ou Treino?}
+        Fail -->|Arcade| SubLife[-1 Vida: 3 Coracoes]
+        Fail -->|Treino| KeepGoing[Modo Treino: Sem Perda de Vida]
+        SubLife --> LivesCheck{Vidas zeradas?}
         LivesCheck -->|Sim| ST_OVER
-        LivesCheck -->|Não| Next["Avança para Próxima Fase (PREPARE)"]
+        LivesCheck -->|Nao| Next[Proxima Fase]
         Pass --> Next
         KeepGoing --> Next
     end
 
-    subgraph METRICS ["6. Validação Acadêmica (CP3)"]
-        ST_RES --> CSV["Registro de Tentativas em CSV (validacao_tentativas.csv)"]
-        CSV --> Stats["Estatísticas: Taxa de Concordância, Erro Médio, FPS"]
+    subgraph S6 [6. Validacao Academica CP3]
+        ST_RES --> CSV[Log CSV: validacao_tentativas.csv]
+        CSV --> Stats[Metricas: Acuracia, Concordancia, FPS]
     end
 ```
+
+</details>
 
 ---
 
