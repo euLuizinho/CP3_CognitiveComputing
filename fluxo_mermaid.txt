@@ -1,0 +1,49 @@
+flowchart TD
+    subgraph INPUT ["1. Entrada de Vídeo"]
+        Cam["Webcam HD (1280x720 16:9)"] --> Flip["Espelhamento Horizontal (Flip)"]
+        Flip --> RGB["Conversão BGR para RGB"]
+    end
+
+    subgraph IA ["2. Visão Computacional & IA"]
+        RGB --> MP["MediaPipe ImageSegmenter (TFLite Float16)"]
+        MP --> Mask["Máscara Binária da Pessoa (720p uint8)"]
+    end
+
+    subgraph ENGINE ["3. Motor de Jogo & FSM"]
+        Mask --> FSM{"Máquina de Estados Finita (FSM)"}
+        FSM -->|1. Início| ST_START["START: Apresentação e Seleção de Modo"]
+        FSM -->|2. Preparação| ST_PREP["PREPARE: Encaixe Prévio (4s) + Projeção da Silhueta"]
+        FSM -->|3. Contagem| ST_COUNT["COUNTDOWN: 2.. 1.. VAI! + Bipes Sonoros"]
+        FSM -->|4. Ação 3D| ST_WALL["WALL_APPROACHING: Parede 3D com Zoom Acelerado"]
+        FSM -->|5. Impacto| ST_RES["RESULT: Flash de Aprovação ou Colisão"]
+        FSM -->|6. Fim| ST_OVER["GAME_OVER: Caiu na Água!"]
+    end
+
+    subgraph RENDER3D ["4. Renderizador 3D Procedural (OpenCV)"]
+        ST_WALL --> Tunnel["Corredor com Linhas de Fuga e Piso Dinâmico"]
+        Tunnel --> Texture["Geração de Texturas Procedurais (Neon, Matrix, etc.)"]
+        Texture --> Extrude["Extrusão Volumétrica e Chanfro 3D do Bloco"]
+        Extrude --> Hole["Composição do Buraco Vazado com Anti-aliasing"]
+        Hole --> Neon["Contorno Neon Multicamadas (Verde / Laranja)"]
+        Neon --> Thumb["Miniatura Alvo (Thumbnail) no Canto da Tela"]
+    end
+
+    subgraph COLLISION ["5. Lógica de Encaixe & Julgamento"]
+        ST_WALL --> Calc["Cálculo de Encaixe: 1.0 - (Pixels Fora / Total Corpo)"]
+        Calc --> Bar["Barra de Encaixe em Tempo Real no HUD"]
+        ST_RES --> Judge{"Encaixe >= 68%?"}
+        Judge -->|Sim| Pass["Vitória: +100 Pontos x Fase + Som de Sucesso"]
+        Judge -->|Não| Fail{"Modo Arcade ou Treino?"}
+        Fail -->|Arcade| SubLife["-1 Vida (3 Corações)"]
+        Fail -->|Treino| KeepGoing["Modo Treino: Sem Penalidade de Vida"]
+        SubLife --> LivesCheck{"Vidas <= 0?"}
+        LivesCheck -->|Sim| ST_OVER
+        LivesCheck -->|Não| Next["Avança para Próxima Fase (PREPARE)"]
+        Pass --> Next
+        KeepGoing --> Next
+    end
+
+    subgraph METRICS ["6. Validação Acadêmica (CP3)"]
+        ST_RES --> CSV["Registro de Tentativas em CSV (validacao_tentativas.csv)"]
+        CSV --> Stats["Estatísticas: Taxa de Concordância, Erro Médio, FPS"]
+    end

@@ -1,0 +1,19 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Models (downloaded automatically)
+models/*.tflite
+
+# Validation output
+validacao_tentativas.csv
+
+# OS files
+.DS_Store
+Thumbs.db
